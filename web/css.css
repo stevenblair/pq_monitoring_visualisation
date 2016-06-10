@@ -1,0 +1,36 @@
+/**
+ * Author: Steven Blair, steven.m.blair@strath.ac.uk
+ */
+
+a {
+  cursor: pointer;
+}
+
+select option:disabled {
+  color: #DDD;
+}
+
+.hidden {
+  display: none;
+}
+
+.hidden-xxs {
+  display: none;
+}
+@media (min-width: 360px){
+  .hidden-xxs {
+    display: inline;
+  }
+}
+
+.no-transition {
+  -webkit-transition: height 0.05s;
+  -moz-transition: height 0.05s;
+  -ms-transition: height 0.05s;
+  -o-transition: height 0.05s;
+  transition: height 0.05s;
+}
+
+/*.waveform-plot {
+  height: 200px;
+}*/

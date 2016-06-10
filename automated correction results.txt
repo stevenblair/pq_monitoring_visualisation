@@ -1,0 +1,29 @@
+Detected and corrected:
+
+* Ashton on Mersey, Magnolia Close: current: wrong polarity for phases A and C
+                                        results in pf being close to -1 in those phases
+* Chamberhall, Arley Avenue: phase C current wrong polarity
+* Chassen Road, Ambleside Road: current: all three phases wrong polarity
+* Dickinson Street, Abbey National: current: phase C wrong polarity
+* Dickinson Street, Manchester Town Hall: current: phase B wrong polarity
+* Exchange Street, Grime Street: current: all three phases wrong polarity
+* Greenhill, Woodend: current: all phases wrong polarity
+* Heywood, Hopwood Rec: wrong current sequence at start (only 1st sample)
+                                        results in pf being close to -0.4 to -0.6 in those phases
+* Hyndburn Road, Booth Street: current: all phases wrong polarity
+* Levenshulme, Crossley Road: current: phase C wrong polarity
+* Levenshulme, Fairbourne Road: wrong current sequence throughout
+* Middleton Junction, Mills Hill, Secondary School: current: phase C wrong polarity
+* Monton, Albert Street: wrong current sequence throughout
+* Monton, Vicars Street: wrong current sequence throughout
+* Musgrave Road, Oakwood Drive: wrong current sequence at start (until ~12:30 Mon 4th March 2013)
+* Musgrave Road, Stapleton Avenue: wrong current sequence at start
+* Spa Road, Kays Hanover: wrong current sequence throughout - Current phases A and B wrong
+* Whalley Range, Ryebank Road: current: wrong polarity for phases A and B
+
+Unable to verify:
+
+* O'Neills: cyclic demand, so low current at certain times - leads to current phase shift (but probably no phase connection errors)
+* Dickinson Street, Tuscany House: current: cyclic load: phase B current too low (<50 A) (but probably no phase connection errors)
+* Greenhill, Lees Brook Mill: current: phase A <50 A and therefore wrong polarity (but probably no phase connection errors)
+                                        results in pf being close to -0.5 in that phases

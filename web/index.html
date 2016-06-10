@@ -1,0 +1,190 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <title>C2C power quality monitoring</title>
+
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="">
+  <meta name="author" content="Steven Blair">
+
+  <link href="bootstrap/css/bootstrap.min.css" rel="stylesheet">
+  <link href="bootstrap/css/bootstrap-theme.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="css.css" type="text/css">
+  <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
+  <link rel="icon" type="image/png" href="favicon.png" />
+
+  <script src="jquery/jquery-1.11.2.min.js"></script>
+  <script src="jquery/jquery.mousewheel.min.js"></script>
+  <script src="highcharts/highcharts.js"></script>
+  <script src="highcharts/highcharts-more.js"></script>
+  <script src="highcharts/modules/heatmap.js"></script>
+  <script src="highcharts/modules/no-data-to-display.js"></script>
+  <script src="highcharts/modules/exporting.js"></script>
+  <script src="highcharts/modules/export-csv.js"></script>
+  <script src="histogram/histogram.min.js"></script>
+
+  <script src="bootstrap/js/bootstrap.min.js"></script>
+
+  <script src="ember/handlebars-v2.0.0.min.js"></script>
+  <script src="ember/ember.min.js"></script>
+
+  <script src="js.js"></script>
+</head>
+
+<body>
+  <script type="text/x-handlebars">
+    <nav class="navbar navbar-default navbar-static-top">
+      <div class="container-fluid">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed btn-xs" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href=""><i class="fa fa-bar-chart fa-lg"></i><span class="hidden-xxs"> C<sub>2</sub>C power quality monitoring</span></a>
+        </div>
+        <div id="navbar" class="navbar-collapse collapse no-transition">
+          <ul class="nav navbar-nav">
+          {{#link-to "index" tagName="li"}}
+            <a {{bind-attr href="view.href"}}>Home</a>
+          {{/link-to}}
+          {{#link-to "about" tagName="li"}}
+            <a {{bind-attr href="view.href"}}>About</a>
+          {{/link-to}}
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    {{outlet}}
+  </script>
+
+  <script type="text/x-handlebars" data-template-name="index">
+    <div class="container-fluid" id="main">
+    {{#if content}}
+
+      <form class="form-horizontal" role="form">
+        <div class="form-group">
+          <label for="monitors" class="control-label col-sm-2">Monitoring location:</label>
+          <div class="col-sm-8">
+            {{view "select"
+            content=controller
+            optionValuePath="content.monitor_name_index"
+            optionLabelPath="content.monitorFormattedName"
+            value=location
+            name="monitors"
+            id="monitors"
+            class="form-control"
+            }}
+            </select>
+          </div>
+        </div>
+     
+        <div class="form-group">
+          <label for="parameterType" class="control-label col-sm-2">Parameter:</label>
+          <div class="col-sm-8">
+            {{view "select"
+            content=parameterTypes
+            optionValuePath="content.id"
+            optionLabelPath="content.name"
+            value=parameterType
+            name="parameterType"
+            id="parameterType"
+            class="form-control"
+            }}
+          </div>
+        </div>
+     
+        <div class="form-group">
+          <label for="plotType" class="control-label col-sm-2">Plot type:</label>
+          <div class="col-sm-8">
+            {{view "select"
+            content=plotTypes
+            optionValuePath="content.id"
+            optionLabelPath="content.name"
+            value=plotType
+            name="plotType"
+            id="plotType"
+            class="form-control"
+            }}
+          </div>
+        </div>
+     
+        {{#if showHarmonicsButtons}}
+        <div class="form-group" id="harmonics-buttonset">
+          <div class="col-sm-offset-2 col-sm-10">
+            {{#if showEventButtons}}
+            <label class="checkbox-inline">{{input type="checkbox" name="showEvents" checked=showEvents}}Show events</label>
+            {{/if}}
+            <label class="checkbox-inline">{{input type="checkbox" name="showFundamental" checked=showFundamental disabled=interharmonicsButtonSelected}}Show fundamental</label>
+            <label class="checkbox-inline">{{input type="checkbox" name="perUnit" checked=perUnit}}Relative to fundamental</label>
+            {{#if showInterharmonicsButton}}
+              <label class="checkbox-inline">{{input type="checkbox" name="showInterharmonics" checked=showInterharmonics}}Interharmonics</label>
+            {{/if}}
+          </div>
+        </div>
+        {{/if}}
+
+        {{#if showHistogramButtons}}
+        <div class="form-group" id="histogram-buttonset">
+          <div class="col-sm-offset-2 col-sm-10">
+            {{#if showEventButtons}}
+            <label class="checkbox-inline">{{input type="checkbox" name="showEvents" checked=showEvents}}Show events</label>
+            {{/if}}
+            <label class="checkbox-inline">{{input type="checkbox" name="showHistogram" checked=showHistogram}}Show histogram</label>
+            <label class="checkbox-inline">{{input type="checkbox" name="histogramIsCumulative" checked=histogramIsCumulative}}Cumulative</label>
+          </div>
+        </div>
+        {{/if}}
+      </form>
+
+      <div class="row" id="content">
+        <div id="container" {{bind-attr class="showHistogramContainer:col-md-9:col-md-12"}}></div>
+        <div id="container-histogram" {{bind-attr class="showHistogramContainer:col-md-3:hidden"}}></div>
+      </div>
+      <div id="container-waveform-V" class="waveform-plot"></div>
+      <div id="container-waveform-I" class="waveform-plot"></div>
+      <!-- <div id="container-waveform-P" class="waveform-plot"></div>
+      <div id="container-P" class="waveform-plot"></div>
+      <div id="container-Q" class="waveform-plot"></div> -->
+
+    {{/if}}
+    </div>
+  </script>
+
+  <script type="text/x-handlebars" data-template-name="about">
+    <div class="container" id="about-text">
+      <h2>Overview</h2>
+      <p>This web page provides graphical access to the LV power quality monitoring data captured during the <a href="http://www.enwl.co.uk/c2c">Capacity to Customers</a> project. The project has been led by Electricity North West Limited (ENWL), a distribution network operator in the UK. The measurements have been made at secondary (HV to LV) substations throughout ENWL's network, during 2013 and 2014.</p>
+      <p>This web page was created by <a href="http://personal.strath.ac.uk/steven.m.blair/">Steven Blair</a> at the <a href="http://www.strath.ac.uk/">University of Strathclyde</a>.</p>
+
+      <h2>Using the plots</h2>
+      <p>Select a monitoring location, the parameter of interest, and the plot type from the drop-down menus. A two-year period is shown by default for the time series plots. Drag the mouse (or "zoom" on a touchscreen) along the x-axis to change the time period, which will also load higher-resolution data.</p>
+      <p>Use cumulative histograms with current or apparent power to visualise load duration curves. Click on a plot legend label to show or hide the series. Use the mousewheel to change the day shown for polar plots, or the hour used for harmonic spectra and waveforms.</p>
+      <p>Triggered events, such as over-current and under-voltage detection, can be overlaid on the plots. Click on these events to view the captured voltage and current waveforms.</p>
+
+      <h2>Other notes</h2>
+      <p>Most values are the average measurement over a 5-minute period. The “min-max range” is calculated from the minimum (or maximum) measured 10-cycle RMS value on any phase over the sampling period. Therefore, a single 200 ms “spike” on one phase might be reflected in the maximum value, but would be smoothed-out in the 5-minute average. These 5-minute samples (about 100,000 values per year, per measurand) are re-sampled to reduce the plot to a sensible number of points (about 400), but without distorting the overall trend. The re-sampling process carefully preserves the minimum and maximum values, rather than averaging them.</p>
+      <p>The detailed voltage and current waveforms have been reconstructed from detailed harmonic measurements: the magnitudes and phases of all integer harmonics from 0<sup>th</sup> (DC) to 63<sup>rd</sup>. The waveforms do not include interharmonics which, although measured, cannot be accurately recreated. The instantaneous harmonic profile has been measured at a snapshot in time. The current waveforms do not include a DC component because the measurements were made using a Rogowski coil. The harmonics time series plot type shows selected harmonic frequencies over time, and uses the average of harmonic magnitudes of the individual phases.</p>
+      <p>Generating a heat map takes a relatively long time. Some monitoring data are missing, and the accuracy of data cannot be guaranteed. Some timestamps are inaccurate. In some cases, the polarity of the current sensor is incorrect, or the sequence of the voltage and current measurements is incorrect; where possible, these issues have been corrected. The raw data are also available to download <a href="https://www.enwclass.nortechonline.net/data#substation-group/43">here</a>.</p>
+      <p>The monitoring devices automatically re-calculate the nominal voltage value over time. This may result in triggered events at +/- 0.1 pu of the calculated nominal, but which are still within network regulatory limits. Some events are too long to capture the full waveform; instead the start and end of the event is captured.</p>
+    </div>
+  </script>
+
+  <script>
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+    ga('create', 'UA-58600521-1', 'auto');
+    ga('send', 'pageview');
+  </script>
+
+</body>
+
+</html>
