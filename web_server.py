@@ -2,14 +2,6 @@
 # Author: Steven Blair, steven.m.blair@strath.ac.uk
 #
 
-
-# TODO add polar harmonics plot type?
-# TODO rate-limit mousewheel
-# TODO fix sequence/polarity correction
-# TODO implement voltage sequence correction for other plot types, e.g., harmonics?
-# TODO correlate if per-phase harmonics fit into expected sequences?
-
-
 import calendar
 import datetime
 import tables
@@ -284,57 +276,6 @@ def get_data_heat_map(monitor_name, columns):
         return ujson.dumps(values_out)
 
 
-# def check_angle_range(value_rad, nominal):
-#     value_deg = np.rad2deg(value_rad)
-#     if value_deg > 180.0:
-#         value_deg = value_deg - 360
-#     threshold = 30.0
-
-#     if (nominal - threshold) <= value_deg <= (nominal + threshold)
-
-#     if value_deg > nominal - threshold and value_deg <= nominal + threshold:
-#         phase_polarity.append(1)
-#     else:
-#         append(-1)
-
-def check_angle_range(value_rad, nominal):
-    # potential issues with data:
-
-    # initial samples are unreliable - captured during installation process
-    # any voltage or current sensor not connected
-    # voltage sequence wrong
-    # voltage phase A inconsistent with system phase A
-    # current sequence wrong (e.g., Ib and Ic swapped)
-    # current sequence correct, but inconsistent with voltage sequence (Ic, Ia, Ib instead of Ia, Ib, Ic)
-    # any current polarity wrong
-
-
-    # TODO detect wrong sequence?
-    #      Heywood, Hopwood Rec: wrong voltage and current sequence at start
-    #      Levenshulme, Fairbourne Road: wrong current sequence throughout
-    #      Monton, Albert Street: wrong voltage and current sequence throughout
-    #      Monton, Vicars Street: wrong voltage and current sequence throughout
-    #      Musgrave Road, Oakwood Drive: wrong current sequence at start
-    #      Musgrave Road, Stapleton Avenue: wrong current sequence at start
-    #      Spa Road, Kays Hanover: wrong current sequence throughout - Current phase A wrong
-    value_deg = np.rad2deg(value_rad)
-    threshold = 45.0
-
-    if nominal == 0.0:
-        # phase A - may wrap around zero
-        if ((360.0 - threshold) <= value_deg <= 360) or (0.0 <= value_deg <= threshold):
-            return 1.0
-    elif nominal == 240:
-        # phase B
-        if ((240.0 - threshold) <= value_deg <= (240 + threshold)):
-            return 1.0
-    elif nominal == 120:
-        # phase C
-        if ((120.0 - threshold) <= value_deg <= (120 + threshold)):
-            return 1.0
-
-    return -1.0
-
 def is_pos_seq(values_rad):
     values_deg = np.rad2deg(values_rad)
     threshold = 45.0
@@ -361,8 +302,6 @@ def is_pos_seq(values_rad):
 def get_data_waveform(monitor_name, harmonics_type, from_dt):
     if INDIVIDUAL_HARMONICS:
         timer = NamedTimer()
-
-        # TODO find closest date?
 
         harmonics_phases = ['Va', 'Vb', 'Vc']
         if harmonics_type == 'current':
@@ -392,16 +331,6 @@ def get_data_waveform(monitor_name, harmonics_type, from_dt):
 
             phase_polarity = [1.0, 1.0, 1.0]
             change_seq = not is_pos_seq([angs[i][0] for i in range(0, 3)])
-            # print 'change_seq:', change_seq
-            # print [np.rad2deg(angs[i][0]) for i in range(0, 3)]
-            # if harmonics_type == 'current':
-            #     phase_polarity = [check_angle_range(angs[0][0], 0.0), check_angle_range(angs[1][0], 240.0), check_angle_range(angs[2][0], 120.0)]
-            #     ang_offsets = [n * np.pi if n < 0.0 else 0.0 for n in phase_polarity]
-            #     print 'ang_offsets', ang_offsets
-            #     change_seq = not is_pos_seq([angs[i][0] + ang_offsets[i] for i in range(0, 3)])
-            #     print 'after polarity, change_seq:', change_seq
-            #     print [np.rad2deg(angs[i][0] + ang_offsets[i]) for i in range(0, 3)]
-            #     print 'phase_polarity', phase_polarity
 
             waveform_duration = 0.04    # seconds
             F_nom = 50.0                # Hz
@@ -434,8 +363,6 @@ def get_data_waveform(monitor_name, harmonics_type, from_dt):
 def get_data_harmonics(monitor_name, harmonics_type, from_dt, show_fundamental=True, to_pu=False, interharmonics=False):
     if INDIVIDUAL_HARMONICS:
         timer = NamedTimer()
-
-        # TODO find closest date?
 
         harmonics_phases = ['Va', 'Vb', 'Vc']
         if harmonics_type == 'current':
@@ -869,27 +796,6 @@ class HarmonicsTrendsResource(resource.Resource):
             '"data":' + data + '}'
 
         return ret
-# def find_negative_real_power_measurements():
-#     batches = [1, 2, 3]
-#     columns = ['Real_Power_L1_10_Cycle_Avg_kW', 'Real_Power_L2_10_Cycle_Avg_kW', 'Real_Power_L3_10_Cycle_Avg_kW']
-
-#     for node in monitor_tables:
-#         table = node._f_get_child('readout')
-#         name = get_abbreviated_name(node._v_title)
-#         if name not in negative_batch_map:
-#             negative_batch_map[name] = {}
-
-#         for batch in batches:
-#             # TODO must check all rows, because senors can be changed over time
-#             #      check: real power, power factor, current harmonic phases
-#             for row in table.where('batch == ' + str(batch), start=0, stop=1):
-#                 print batch, row
-#                 real_power_sign = [np.sign(row[c]) for c in columns]
-#                 negative_batch_map[name][batch] = real_power_sign
-#                 break
-
-#     for n in negative_batch_map:
-#         print n, negative_batch_map[n]
 
 
 FILENAME = 'data/monitoring-data-float32-no-compression.h5'
